@@ -84,14 +84,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 
                 box.physicsBody = SKPhysicsBody(rectangleOf: box.size)
                 box.physicsBody?.isDynamic = false
+                box.name = "box"
                 addChild(box)
             } else {
                 
-                let ball = SKSpriteNode(imageNamed: "ballRed")
+//Challenge 1: Try writing code to use a random ball color each time they tap the screen.
+                let arrayBall = [
+                "ballBlue", "ballCyan", "ballGreen", "ballGrey", "ballPurple", "ballRed", "ballYellow"
+                ]
+                let ball = SKSpriteNode(imageNamed: arrayBall[Int.random(in: 0...6)])
                 ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2.0)
                 ball.physicsBody?.restitution = 0.4
                 ball.physicsBody?.contactTestBitMask = ball.physicsBody?.collisionBitMask ?? 0
-                ball.position = location
+//Challenge 2:
+                ball.position = CGPoint(x: location.x, y: 650)
                 ball.name = "ball"
                 addChild(ball)
             }
@@ -144,6 +150,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             destroy(ball: ball)
             score -= 1
         }
+        
+        if object.name == "box" {
+             destroy(ball: object)
+         }
     }
     
     func destroy(ball: SKNode) {
@@ -158,6 +168,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if contact.bodyA.node?.name == "ball" {
             collision(between: nodeA, object: nodeB)
         } else if contact.bodyB.node?.name == "ball" {
+            collision(between: nodeB, object: nodeA)
+        }
+        
+        if contact.bodyA.node?.name == "box" {
+            collision(between: nodeA, object: nodeB)
+        } else if contact.bodyB.node?.name == "box" {
             collision(between: nodeB, object: nodeA)
         }
     }
