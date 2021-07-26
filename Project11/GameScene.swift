@@ -12,6 +12,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     //MARK: - Attributes
     
     var scoreLabel: SKLabelNode!
+    var numberOfBallsLabel: SKLabelNode!
     var score = 0 {
         didSet {
             scoreLabel.text = "Score: \(score)"
@@ -24,6 +25,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 editingLabel.text = "Done"
             } else {
                 editingLabel.text = "Edit"
+            }
+        }
+    }
+    var numberOfBalls = 5 {
+        didSet {
+            numberOfBallsLabel.text = "Balls: \(numberOfBalls)"
+            if numberOfBalls == 0 {
+                numberOfBallsLabel.text = "Game Over"
+                resetGame()
             }
         }
     }
@@ -42,6 +52,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.horizontalAlignmentMode = .right
         scoreLabel.position = CGPoint(x: 980, y: 700)
         addChild(scoreLabel)
+        
+        numberOfBallsLabel = SKLabelNode(fontNamed: "Chalkduster")
+        numberOfBallsLabel.text = "Balls: 5"
+        numberOfBallsLabel.horizontalAlignmentMode = .right
+        numberOfBallsLabel.position = CGPoint(x: 980, y: 650)
+        addChild(numberOfBallsLabel)
         
         editingLabel = SKLabelNode(fontNamed: "Chalkduster")
         editingLabel.text = "Edit"
@@ -96,8 +112,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2.0)
                 ball.physicsBody?.restitution = 0.4
                 ball.physicsBody?.contactTestBitMask = ball.physicsBody?.collisionBitMask ?? 0
-//Challenge 2:
-                ball.position = CGPoint(x: location.x, y: 650)
+//Challenge 2: Try to force the Y value of new balls so they are near the top of the screen.
+                ball.position = CGPoint(x: location.x, y: 680)
                 ball.name = "ball"
                 addChild(ball)
             }
@@ -146,9 +162,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if object.name == "good" {
             destroy(ball: ball)
             score += 1
+            numberOfBalls += 1
         } else if object.name == "bad" {
             destroy(ball: ball)
             score -= 1
+            numberOfBalls -= 1
         }
         
         if object.name == "box" {
@@ -157,6 +175,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func destroy(ball: SKNode) {
+        
+        if let fireParticles = SKEmitterNode(fileNamed: "FireParticles") {
+            fireParticles.position = ball.position
+            addChild(fireParticles)
+        }
         ball.removeFromParent()
     }
     
@@ -171,10 +194,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             collision(between: nodeB, object: nodeA)
         }
         
+//Challenge 3: Give players a limit of five balls, then remove obstacle boxes when they are hit.
         if contact.bodyA.node?.name == "box" {
             collision(between: nodeA, object: nodeB)
         } else if contact.bodyB.node?.name == "box" {
             collision(between: nodeB, object: nodeA)
         }
     }
+    
+    func resetGame() {
+        let gameScene:GameScene = GameScene(size: self.view!.bounds.size) // create your new scene
+        let transition = SKTransition.fade(withDuration: 1.0) // create type of transition (you can check in documentation for more transtions)
+        gameScene.scaleMode = SKSceneScaleMode.fill
+        self.view!.presentScene(gameScene, transition: transition)
+        }
 }
